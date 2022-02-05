@@ -52,7 +52,7 @@ function tasksystem_install()
   $setting_group = array(
     'name' => 'tasksystem',
     'title' => 'Aufgabensystem',
-    'description' => 'Einstellungen für das Aufgabensystem für Moderatiren',
+    'description' => 'Einstellungen für das Aufgabensystem für Moderatoren',
     'disporder' => 8, // The order your setting group will display
     'isdefault' => 0
   );
