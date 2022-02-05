@@ -17,3 +17,12 @@ Im ACP werden die Aufgaben unter Einstellungen -> Aufgabensystem verwaltet
 Dateien aus dem Upload Ordner hochladen.       
 Plugin installieren.   
 Einstellungen vornehmen
+
+# angelegte Templates
+globale Templates:
+- tasksystem_index
+- tasksystem_indexbit
+
+# Variablen
+im header:
+{$tasksystem_index} 
