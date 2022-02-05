@@ -74,7 +74,7 @@ function tasksystem_install()
     ),
     'tasksystem_erledigt' => array(
       'title' => 'Thread solved?',
-      'description' => 'Wird zur markierung fertiger Steckbriefe das Threadsolved Plugin verwendet?',
+      'description' => 'Wird zur Markierung fertiger Steckbriefe das Threadsolved Plugin verwendet?',
       'value' => '1',
       'optionscode' => 'yesno',
       'disporder' => 3,
