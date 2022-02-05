@@ -2,8 +2,7 @@
 Mit diesem Plugin können über das ACP verschiedene Aufgaben für Moderatoren erstellt und zugeordnet werden. Es kann ein Start- und Enddatum angelegt werden. 
 Optional kann angegeben werden ob Steckbriefe(RPGs) automatisch hinzugefügt werden.
 
-Dies geschieht entweder, wenn das Thema als erledigt markiert wird (Thema erledigt Plugin von Michael) oder wenn der Threaderstellt wird.
-(Je nach Einstellung) 
+Dies geschieht entweder, wenn das Thema als erledigt markiert wird (Thema erledigt Plugin von Michael) oder wenn der Thread erstellt wird (je nach Einstellung).
 
 Aufgaben können als nie, wöchentlich oder monatlich wiederkehrend eingestellt werden.
 
