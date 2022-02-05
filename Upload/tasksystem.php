@@ -924,6 +924,7 @@ function tasksystem_main()
 
   if ($mybb->settings['tasksystem_index'] == 1) {
     //wer ist online
+    $flag = 0;
     $thisuser = get_user($mybb->user['uid']);
 
     //einstellungen
@@ -947,6 +948,7 @@ function tasksystem_main()
         );
 
         while ($task = $db->fetch_array($get_tasks)) {
+          $flag = 1;
           if ($task['uid'] == "") {
             $take = "<a href=\"index.php?action=tasksystem_take&amp;taskid={$task['id']}\">[take]</a>";
           } else {
@@ -979,6 +981,7 @@ function tasksystem_main()
            ORDER BY date_format(enddate, '%Y-%m-%d') ASC"
       );
       while ($task = $db->fetch_array($get_tasks_empty)) {
+        $flag = 1;
         if ($task['uid'] == "") {
           $take = "<a href=\"index.php?action=tasksystem_take&amp;taskid={$task['id']}\">[take]</a>";
         } else {
@@ -998,14 +1001,16 @@ function tasksystem_main()
         $end = new DateTime(date("Y-m-d", strtotime($task['enddate'])));
         $days = $today->diff($end);
         $computeddays = $days->format("%d");
-        if ($computeddays <= 2) {
+        if ($computeddays <= 1) {
           $task['end'] = "<span class=\"reminder\">{$task['end']}</span>";
         }
 
         eval("\$tasksystem_indexbit .= \"" . $templates->get("tasksystem_indexbit") . "\";");
       }
 
-      eval("\$tasksystem_index = \"" . $templates->get("tasksystem_index") . "\";");
+      if ($flag == 1) {
+        eval("\$tasksystem_index = \"" . $templates->get("tasksystem_index") . "\";");
+      }
 
 
       if ($mybb->input['action'] == 'tasksystem_take') {
