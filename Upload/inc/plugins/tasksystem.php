@@ -432,7 +432,7 @@ function tasksystem_admin_load()
         //log erstellen
         $mybb->input['module'] = "tasksystem";
         $mybb->input['action'] = "Erfolgreich gespeichert";
-        log_admin_action("User: " . htmlspecialchars_uni(implode(",", $mybb->input['user'])) . " Aufgabe:" . htmlspecialchars_uni(implode(",", $mybb->input['taskname'])));
+        log_admin_action("User: " . htmlspecialchars_uni($mybb->input['user']) . " Aufgabe:" . htmlspecialchars_uni($mybb->input['taskname']));
         flash_message("Erfolgreich gespeichert", 'success');
         admin_redirect("index.php?module=config-tasksystem");
       }
@@ -585,7 +585,7 @@ function tasksystem_admin_load()
           //log erstellen
           $mybb->input['module'] = "tasksystem";
           $mybb->input['action'] = "Erfolgreich aktualisiert";
-          log_admin_action("User: " . htmlspecialchars_uni(implode(",", $mybb->input['user'])) . " Aufgabe:" . htmlspecialchars_uni(implode(",", $mybb->input['taskname'])));
+          log_admin_action("User: " . htmlspecialchars_uni($mybb->input['user']) . " Aufgabe:" . htmlspecialchars_uni( $mybb->input['taskname']));
           flash_message("Erfolgreich aktualisiert", 'success');
           admin_redirect("index.php?module=config-tasksystem");
         }
@@ -728,7 +728,7 @@ function tasksystem_admin_load()
           $db->delete_query("tasksystem", "id = {$aid}");
           $mybb->input['module'] = "tasksystem";
           $mybb->input['action'] = "Erfolgreich gelöscht";
-          log_admin_action("User: " . htmlspecialchars_uni(implode(",", $mybb->user['username'])) . " Aufgabe:" . htmlspecialchars_uni(implode(",", $mybb->input['taskname'])));
+          log_admin_action("User: " . htmlspecialchars_uni($mybb->user['username']) . " Aufgabe:" . htmlspecialchars_uni($mybb->input['taskname']));
           flash_message("Erfolgreich gelöscht", 'success');
           admin_redirect("index.php?module=config-tasksystem");
         } else {
@@ -774,7 +774,7 @@ function tasksystem_admin_load()
           $db->update_query("tasksystem", $update, "id = {$aid}");
           $mybb->input['module'] = "tasksystem";
           $mybb->input['action'] = "Erfolgreich verschoben";
-          log_admin_action("User: " . htmlspecialchars_uni(implode(",", $mybb->user['username'])) . " Aufgabe:" . htmlspecialchars_uni(implode(",", $mybb->input['taskname'])));
+          log_admin_action("User: " . htmlspecialchars_uni($mybb->user['username']) . " Aufgabe:" . htmlspecialchars_uni($mybb->input['taskname']));
           flash_message("Erfolgreich verschoben", 'success');
           admin_redirect("index.php?module=config-tasksystem");
         } else {
@@ -819,7 +819,7 @@ function tasksystem_admin_load()
           $db->update_query("tasksystem", $update, "id = {$aid}");
           $mybb->input['module'] = "tasksystem";
           $mybb->input['action'] = "Erfolgreich verschoben";
-          log_admin_action("User: " . htmlspecialchars_uni(implode(",", $mybb->user['username'])) . " Aufgabe:" . htmlspecialchars_uni(implode(",", $mybb->input['taskname'])));
+          log_admin_action("User: " . htmlspecialchars_uni($mybb->user['username']) . " Aufgabe:" . htmlspecialchars_uni($mybb->input['taskname']));
           flash_message("Erfolgreich verschoben", 'success');
           admin_redirect("index.php?module=config-tasksystem");
         } else {
