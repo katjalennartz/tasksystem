@@ -585,7 +585,7 @@ function tasksystem_admin_load()
           //log erstellen
           $mybb->input['module'] = "tasksystem";
           $mybb->input['action'] = "Erfolgreich aktualisiert";
-          log_admin_action("User: " . htmlspecialchars_uni($mybb->input['user']) . " Aufgabe:" . htmlspecialchars_uni( $mybb->input['taskname']));
+          log_admin_action("User: " . htmlspecialchars_uni($mybb->input['user']) . " Aufgabe:" . htmlspecialchars_uni($mybb->input['taskname']));
           flash_message("Erfolgreich aktualisiert", 'success');
           admin_redirect("index.php?module=config-tasksystem");
         }
@@ -948,7 +948,7 @@ function tasksystem_main()
         );
 
         while ($task = $db->fetch_array($get_tasks)) {
-          $flag = 1;
+
           if ($task['uid'] == "") {
             $take = "<a href=\"index.php?action=tasksystem_take&amp;taskid={$task['id']}\">[take]</a>";
           } else {
@@ -971,8 +971,16 @@ function tasksystem_main()
           if ($computeddays <= 2) {
             $task['end'] = "<span class=\"reminder\">{$task['end']}</span>";
           }
-
-          eval("\$tasksystem_indexbit .= \"" . $templates->get("tasksystem_indexbit") . "\";");
+          $start = new DateTime(date("Y-m-d", strtotime($task['startdate'])));
+          $computeddays = 2;
+          if ($today < $start) {
+            $sdays = $today->diff($start);
+            $scomputeddays = $sdays->format("%d");
+          }
+          if ($scomputeddays <= 1 || $today >= $start) {
+            $flag = 1;
+            eval("\$tasksystem_indexbit .= \"" . $templates->get("tasksystem_indexbit") . "\";");
+          }
         }
       }
       $get_tasks_empty = $db->write_query(
@@ -981,7 +989,7 @@ function tasksystem_main()
            ORDER BY date_format(enddate, '%Y-%m-%d') ASC"
       );
       while ($task = $db->fetch_array($get_tasks_empty)) {
-        $flag = 1;
+
         if ($task['uid'] == "") {
           $take = "<a href=\"index.php?action=tasksystem_take&amp;taskid={$task['id']}\">[take]</a>";
         } else {
@@ -1004,8 +1012,16 @@ function tasksystem_main()
         if ($computeddays <= 1) {
           $task['end'] = "<span class=\"reminder\">{$task['end']}</span>";
         }
-
-        eval("\$tasksystem_indexbit .= \"" . $templates->get("tasksystem_indexbit") . "\";");
+        $start = new DateTime(date("Y-m-d", strtotime($task['startdate'])));
+        $computeddays = 2;
+        if ($today < $start) {
+          $sdays = $today->diff($start);
+          $scomputeddays = $sdays->format("%d");
+        }
+        if ($scomputeddays <= 1 || $today >= $start) {
+          $flag = 1;
+          eval("\$tasksystem_indexbit .= \"" . $templates->get("tasksystem_indexbit") . "\";");
+        }
       }
 
       if ($flag == 1) {
