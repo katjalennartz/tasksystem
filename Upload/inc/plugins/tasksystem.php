@@ -370,6 +370,13 @@ function tasksystem_admin_load()
               . "&amp;my_post_key={$mybb->post_code}"
           );
         }
+        if ($task['repetition'] == "custom") {
+          $popup->add_item(
+            "done & next",
+            "index.php?module=config-tasksystem&amp;action=tasksystem_custom&amp;taskid={$task['id']}"
+              . "&amp;my_post_key={$mybb->post_code}"
+          );
+        }
         $popup->add_item(
           "edit",
           "index.php?module=config-tasksystem&amp;action=tasksystem_edit&amp;taskid={$task['id']}"
@@ -400,6 +407,7 @@ function tasksystem_admin_load()
     // Eine Aufgabe erstellen
     if ($mybb->input['action'] == "create_task") {
       // Handler Task eintragen
+
       if ($mybb->request_method == "post") {
         //Fehler abfangen und anzeigen:
         if (empty($mybb->input['taskname'])) {
@@ -408,8 +416,19 @@ function tasksystem_admin_load()
         if (empty($mybb->input['taskdescr'])) {
           $errors[] = "Fehler: Taskbeschreibung erstellen";
         }
+        if (empty($mybb->input['taskdescr'])) {
+          $errors[] = "Fehler: Taskbeschreibung erstellen";
+        }
         if (empty($mybb->input['endate'])) {
           $errors[] = "Fehler: Enddatum wählen";
+        }
+        //Fehler abfangen und anzeigen:
+        if (!empty($mybb->input['repeat']) && $mybb->input['repeat'][0] == "custom") {
+          if ($mybb->input['customlength'] != "") {
+            $mybb->input['repeat'][0] = $mybb->input['repeat'][0] . trim($mybb->input['customlength']);
+          } else {
+            $errors[] = "Eigenen Wiederholungs Zeitraum auswählen";
+          }
         }
         //Startdatum heute oder ein bestimmtes? 
         if (empty($mybb->input['startdate'])) {
@@ -418,6 +437,7 @@ function tasksystem_admin_load()
         } else {
           $start = $db->escape_string($mybb->input['startdate']);
         }
+
         //einfügen
         $insert = [
           "taskname" => $db->escape_string($mybb->input['taskname']),
@@ -509,9 +529,10 @@ function tasksystem_admin_load()
       $repeat = array(
         'none' => 'none',
         'weekly' => 'weekly',
-        'monthly' => 'monthly'
+        'monthly' => 'monthly',
+        'custom' => 'custom'
       );
-      //selecgt erstellenn
+      //select erstellenn
       $form_container->output_row(
         "Wiederholung",
         "Auswählen ob und in welchem Interval die Aufgabe wiederholt werden soll.",
@@ -522,6 +543,12 @@ function tasksystem_admin_load()
           array('id' => 'id', 'size' => 3)
         ),
         'repeat'
+      );
+      //custom
+      $form_container->output_row(
+        "Eigener Wiederholungszeitraum:", //datum
+        "Wenn Custom ausgewählt ist, lege hier fest wie der Zeitraum sein soll. z.B 3 für alle 3 Monate .",
+        $form->generate_text_box('customlength', $mybb->input['customlength'])
       );
       //startdatum erstellen
       $form_container->output_row(
@@ -561,6 +588,13 @@ function tasksystem_admin_load()
         }
         if (empty($mybb->input['taskdescr'])) {
           $errors[] = "Fehler: Taskbeschreibung erstellen";
+        }
+        if (!empty($mybb->input['repeat']) && $mybb->input['repeat'][0] == "custom") {
+          if ($mybb->input['customlength'] != "") {
+            $mybb->input['repeat'][0] = $mybb->input['repeat'][0] . trim($mybb->input['customlength']);
+          } else {
+            $errors[] = "Eigenen Wiederholungs Zeitraum auswählen";
+          }
         }
         if (empty($errors)) {
           //Startdatum heute oder ein bestimmtes? 
@@ -674,7 +708,8 @@ function tasksystem_admin_load()
       $repeat = array(
         'none' => 'none',
         'weekly' => 'weekly',
-        'monthly' => 'monthly'
+        'monthly' => 'monthly',
+        'custom' => 'custom'
       );
       //select erstellenn
       $form_container->output_row(
@@ -687,6 +722,11 @@ function tasksystem_admin_load()
           array('id' => 'id', 'size' => 3)
         ),
         'repeat'
+      );
+      $form_container->output_row(
+        "Eigener Wiederholungszeitraum:", //datum
+        "Wenn Custom ausgewählt ist, lege hier fest wie der Zeitraum sein soll. z.B 3 für alle 3 Monate .",
+        $form->generate_text_box('customlength', substr($edit['repetition'], -1))
       );
       //startdatum erstellen
       $form_container->output_row(
@@ -741,6 +781,56 @@ function tasksystem_admin_load()
     }
 
     // Aufgabe getan + Wiederholung 
+    // custom month
+    if ($mybb->input['action'] == "tasksystem_custom") {
+      $aid = $mybb->get_input('taskid', MyBB::INPUT_INT);
+      $task = $db->simple_select("tasksystem", "*", "id={$aid}");
+      $shift = $db->fetch_array($task);
+
+      if (empty($aid)) {
+        flash_message("Fehler beim verschieben", 'error');
+        admin_redirect("index.php?module=config-tasksystem&amp;action=tasksystem_nextmonth");
+      }
+      if (isset($mybb->input['no']) && $mybb->input['no']) {
+        flash_message("Fehler beim Löschen", 'error');
+        admin_redirect("index.php?module=config-tasksystem&amp;action=tasksystem_nextmonth");
+      }
+      if (!verify_post_check($mybb->input['my_post_key'])) {
+        flash_message("Fehler beim Authentifizieren mypostcode shit", 'error');
+        admin_redirect("index.php?module=config-tasksystem&amp;action=tasksystem_nextmonth");
+      } else {
+        if ($mybb->request_method == "post") {
+          $start = new DateTime(date("Y-m-d", strtotime($shift['startdate'])));
+          $end = new DateTime(date("Y-m-d", strtotime($shift['enddate'])));
+          $start = new DateTime(date("Y-m-d", strtotime($shift['startdate'])));
+          $interval = substr($shift['repetition'], -1);
+          if ($interval == 1) {
+            $s = "";
+          } else {
+            $s = "s";
+          }
+          $start = date_add($start, date_interval_create_from_date_string($interval . ' Month' . $s));
+          $end = date_add($end, date_interval_create_from_date_string($interval . ' Month' . $s));
+
+          $update = [
+            "startdate" => $start->format('Y-m-d'),
+            "enddate" => $end->format('Y-m-d'),
+          ];
+
+          $db->update_query("tasksystem", $update, "id = {$aid}");
+          $mybb->input['module'] = "tasksystem";
+          $mybb->input['action'] = "Erfolgreich verschoben";
+          log_admin_action("User: " . htmlspecialchars_uni($mybb->user['username']) . " Aufgabe:" . htmlspecialchars_uni($mybb->input['taskname']));
+          flash_message("Erfolgreich verschoben", 'success');
+          admin_redirect("index.php?module=config-tasksystem");
+        } else {
+          $page->output_confirm_action(
+            "index.php?module=config-tasksystem&amp;action=tasksystem_nextmonth&amp;taskid={$aid}",
+            "Möchten du diese Aufgabe als erledigt markieren und das Start & Enddatum um einen Monat verschieben?"
+          );
+        }
+      }
+    }
     // 1 Month
     if ($mybb->input['action'] == "tasksystem_nextmonth") {
       $aid = $mybb->get_input('taskid', MyBB::INPUT_INT);
@@ -963,6 +1053,9 @@ function tasksystem_main()
           } else if ($task['repetition'] == 'monthly') {
             //um einen Monat verschieben
             $done = "<a href=\"index.php?action=tasksystem_nextmonth&amp;taskid={$task['id']}\">[done]</a>";
+          } else if (substr($task['repetition'], 0, -1) == 'custom') {
+            //um einen Monat verschieben
+            $done = "<a href=\"index.php?action=tasksystem_custom&amp;taskid={$task['id']}\">[done]</a>";
           }
           $today =  new DateTime(date("Y-m-d"));
           $end = new DateTime(date("Y-m-d", strtotime($task['enddate'])));
@@ -993,7 +1086,7 @@ function tasksystem_main()
         if ($task['uid'] == "") {
           $take = "<a href=\"index.php?action=tasksystem_take&amp;taskid={$task['id']}\">[take]</a>";
         } else {
-          $take = " Deine Aufgabe ";
+          $take = " Deine Aufgabe";
         }
         if ($task['repetition'] == 'none') {
           //done and delete
@@ -1004,6 +1097,9 @@ function tasksystem_main()
         } else if ($task['repetition'] == 'monthly') {
           //um einen Monat verschieben
           $done = "<a href=\"index.php?action=tasksystem_nextmonth&amp;taskid={$task['id']}\">[done]</a>";
+        } else if (substr($task['repetition'], 0, -1) == 'custom') {
+          //um einen Monat verschieben
+          $done = "<a href=\"index.php?action=tasksystem_custom&amp;taskid={$task['id']}\">[done]</a>";
         }
         $today =  new DateTime(date("Y-m-d"));
         $end = new DateTime(date("Y-m-d", strtotime($task['enddate'])));
@@ -1084,6 +1180,32 @@ function tasksystem_main()
         $start = new DateTime(date("Y-m-d", strtotime($shift['startdate'])));
         $start = date_add($start, date_interval_create_from_date_string('1 Month'));
         $end = date_add($end, date_interval_create_from_date_string('1 Month'));
+
+        $update = [
+          "startdate" => $start->format('Y-m-d'),
+          "enddate" => $end->format('Y-m-d'),
+        ];
+        $db->update_query("tasksystem", $update, "id = {$aid}");
+        redirect("index.php");
+      }
+
+      if ($mybb->input['action'] == 'tasksystem_custom') {
+        $aid = $mybb->get_input('taskid', MyBB::INPUT_INT);
+        //daten des Tasks bekommen
+        $task = $db->simple_select("tasksystem", "*", "id={$aid}");
+        $shift = $db->fetch_array($task);
+
+        $start = new DateTime(date("Y-m-d", strtotime($shift['startdate'])));
+        $end = new DateTime(date("Y-m-d", strtotime($shift['enddate'])));
+        $start = new DateTime(date("Y-m-d", strtotime($shift['startdate'])));
+        $interval = substr($shift['repetition'], -1);
+        if ($interval == 1) {
+          $s = "";
+        } else {
+          $s = "s";
+        }
+        $start = date_add($start, date_interval_create_from_date_string($interval . ' Month' . $s));
+        $end = date_add($end, date_interval_create_from_date_string($interval . ' Month' . $s));
 
         $update = [
           "startdate" => $start->format('Y-m-d'),
